@@ -3,14 +3,13 @@ module.exports = {
   env: { browser: true, es2020: true },
   extends: [
     'airbnb-base',
-    'prettier',
     'eslint:recommended',
     'plugin:@typescript-eslint/recommended',
     'plugin:react-hooks/recommended',
   ],
   ignorePatterns: ['dist', '.eslintrc.cjs'],
   parser: '@typescript-eslint/parser',
-  plugins: ['prettier', 'unused-imports', 'react-refresh'],
+  plugins: ['unused-imports', 'react-refresh'],
   rules: {
     '@typescript-eslint/no-use-before-define': 'error',
     'no-use-before-define': 'off',
@@ -157,17 +156,11 @@ module.exports = {
     // Allow nested ternary
     'no-nested-ternary': 'off',
 
-    // ESLint plugin for prettier formatting
-    // https://github.com/prettier/eslint-plugin-prettier
-    'prettier/prettier': 'error',
-
     'no-shadow': 'off',
     '@typescript-eslint/no-shadow': ['error'],
     '@typescript-eslint/no-non-null-assertion': 'error',
 
     'react/no-unescaped-entities': 'off',
-
-    'lodash/import-scope': ['error', 'method'],
 
     'no-restricted-syntax': ['error', 'ForInStatement', 'LabeledStatement', 'WithStatement'],
 

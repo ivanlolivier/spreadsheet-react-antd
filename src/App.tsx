@@ -1,16 +1,54 @@
-import './App.css'
-import Spreadsheet from './components/spreadsheet';
+import './App.css';
+import { Select } from 'antd';
 
-const columns = ["Name", "Age", "Address"];
+import Spreadsheet from './components/spreadsheet';
+import { Column } from './components/spreadsheet/spreadsheet';
+
+const columns: Column[] = [
+  { name: 'Name', key: 'name', type: 'text' },
+  { name: 'Age', key: 'age', type: 'number' },
+  {
+    name: 'Country', key: 'country', type: 'select', options: ['Uruguay', 'Argentina', 'Peru'],
+  },
+  {
+    name: 'Type',
+    key: 'type',
+    type: 'custom',
+    render: ({ value, onChange, onBlur }) => <Select
+        value={value}
+        style={{ width: 120 }}
+        onChange={(v) => {
+          onChange(v);
+          onBlur();
+        }}
+        defaultOpen
+        autoFocus
+        options={[
+          { value: 'jackvalue', label: 'Jack Label' },
+          { value: 'lucy', label: 'Lucy' },
+          { value: 'Yiminghe', label: 'yiminghe' },
+          { value: 'disabled', label: 'Disabled', disabled: true },
+        ]}
+      />,
+  },
+];
+
 const rows = [
-  ["John Doe", 28, "123 Main St"],
-  ["Jane Smith", 32, "456 Maple Dr"]
+  {
+    name: 'John Doe', age: 23, type: 'lucy', country: 'Uruguay',
+  },
+  {
+    name: 'John Smith', age: 25, type: 'lucy', country: 'Uruguay',
+  },
+  {
+    name: 'Ana Doe', age: 40, type: 'Yiminghe', country: 'Uruguay',
+  },
 ];
 
 function App() {
   return (
       <Spreadsheet columns={columns} rows={rows} />
-  )
+  );
 }
 
-export default App
+export default App;

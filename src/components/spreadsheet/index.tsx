@@ -1,17 +1,28 @@
-import { useState, useRef } from "react";
+import {
+  useState, useRef, Element, KeyboardEvent,
+} from 'react';
+
 import './styles.css';
+import { TextCell, NumberCell, SelectCell } from './cellRenders';
+import { Column, ColumnType } from './spreadsheet';
 
 type Props = {
-  columns: string[];
-  rows: (string | number)[][];
+  columns: Column[];
+  rows: {[key:string]: any}[];
+};
+
+const componentPerType: Record<ColumnType, Element> = {
+  number: NumberCell,
+  text: TextCell,
+  select: SelectCell,
+  custom: null,
 };
 
 function Spreadsheet({ columns, rows }: Props) {
   const [data, setData] = useState(rows);
-  const [activeCell, setActiveCell] = useState<{row: number, col: number}>({row: 0, col: 0});
+  const [activeCell, setActiveCell] = useState<{row: number, col: number}>({ row: 0, col: 0 });
   const [isEditing, setIsEditing] = useState(false);
   const tableRef = useRef<HTMLTableElement>(null);
-  const inputRef = useRef(null);
 
   const handleTableFocus = () => {
     if (!activeCell) {
@@ -25,8 +36,8 @@ function Spreadsheet({ columns, rows }: Props) {
     let { row, col } = activeCell;
 
     switch (event.key) {
-      case "ArrowRight":
-      case "Tab":
+      case 'ArrowRight':
+      case 'Tab':
         event.preventDefault();
         if (event.shiftKey && col > 0) {
           col--;
@@ -41,20 +52,20 @@ function Spreadsheet({ columns, rows }: Props) {
           row++;
         }
         break;
-      case "ArrowLeft":
+      case 'ArrowLeft':
         col--;
         if (col < 0 && row > 0) {
           row--;
           col = columns.length - 1; // move to the last column of the previous row
         }
         break;
-      case "ArrowDown":
+      case 'ArrowDown':
         row++;
         break;
-      case "ArrowUp":
+      case 'ArrowUp':
         row--;
         break;
-      case "Enter":
+      case 'Enter':
         setIsEditing(true);
         break;
       default:
@@ -70,20 +81,46 @@ function Spreadsheet({ columns, rows }: Props) {
     setActiveCell({ row, col });
   };
 
-  const handleInputBlur = () => {
-    setIsEditing(false);
-  };
-
-  const handleInputChange = (event: any, rowIndex: number, colIndex: number) => {
+  const handleInputChange = (newValue: unknown, rowIndex: number, colKey: string) => {
     const newData = [...data];
-    newData[rowIndex][colIndex] = event.target.value;
+    newData[rowIndex][colKey] = newValue;
     setData(newData);
   };
 
-  const handleInputKeyDown = (event: any) => {
-    if (event.key === "Enter") {
+  const handleInputKeyDown = (event: KeyboardEvent) => {
+    const stopEditingKeys = ['Enter', 'Escape', 'Tab'];
+
+    if (stopEditingKeys.includes(event.key)) {
+      event.preventDefault();
+
       setIsEditing(false);
       tableRef.current?.focus();
+    }
+  };
+
+  const renderCell = ({
+    row, column, activeCell, rowIndex, colIndex,
+  }) => {
+    const editableMode = isEditing && activeCell?.row === rowIndex && activeCell?.col === colIndex;
+
+    if (!editableMode) {
+      return row[column.key];
+    }
+
+    const Component = componentPerType[column.type] ?? column.render ?? null;
+
+    if (Component) {
+      return <Component
+        row={row}
+        column={column}
+        value={row[column.key]}
+        onChange={(newValue) => handleInputChange(newValue, rowIndex, column.key)}
+        onKeyDown={handleInputKeyDown}
+        onBlur={() => {
+          setIsEditing(false);
+          tableRef.current?.focus();
+        }}
+      />;
     }
   };
 
@@ -97,29 +134,27 @@ function Spreadsheet({ columns, rows }: Props) {
       <thead>
       <tr>
         {columns.map((col, index) => (
-          <th key={index}>
-            {col}
-          </th>
+          <th key={index}>{col.name}</th>
         ))}
       </tr>
       </thead>
       <tbody>
       {data.map((row, rowIndex) => (
         <tr key={rowIndex}>
-          {row.map((cellData, colIndex) => (
+          {columns.map((column, colIndex) => (
             <td
               key={colIndex}
               style={{
                 background:
                   rowIndex === activeCell?.row && colIndex === activeCell?.col
-                    ? "#E5E7EB"
-                    : "white",
+                    ? '#E5E7EB'
+                    : 'white',
                 outline:
-                  rowIndex === activeCell?.row &&
-                  colIndex === activeCell?.col &&
-                  !isEditing
-                    ? "2px solid blue"
-                    : "none"
+                  rowIndex === activeCell?.row
+                  && colIndex === activeCell?.col
+                  && !isEditing
+                    ? '2px solid blue'
+                    : 'none',
               }}
               onClick={() => setActiveCell({ row: rowIndex, col: colIndex })}
               onDoubleClick={() => {
@@ -127,21 +162,9 @@ function Spreadsheet({ columns, rows }: Props) {
                 setIsEditing(true);
               }}
             >
-              {isEditing &&
-              activeCell?.row === rowIndex &&
-              activeCell?.col === colIndex ? (
-                <input
-                  ref={inputRef}
-                  type="text"
-                  value={cellData}
-                  onChange={(e) => handleInputChange(e, rowIndex, colIndex)}
-                  onKeyDown={handleInputKeyDown}
-                  onBlur={handleInputBlur}
-                  autoFocus
-                />
-              ) : (
-                cellData
-              )}
+              {renderCell({
+                row, column, activeCell, rowIndex, colIndex,
+              })}
             </td>
           ))}
         </tr>
