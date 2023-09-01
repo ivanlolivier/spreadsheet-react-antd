@@ -1,10 +1,12 @@
 import {
-  useState, useRef, KeyboardEvent,
+  useState, useRef, KeyboardEvent, ReactElement, ReactNode,
 } from 'react';
 
 import './styles.css';
 import { componentPerType } from './config.ts';
-import type { SpreadsheetProps } from './types';
+import type {
+  Column, Row, SpreadsheetProps,
+} from './types';
 
 function Spreadsheet({ columns, rows }: SpreadsheetProps) {
   const [data, setData] = useState(rows);
@@ -88,17 +90,17 @@ function Spreadsheet({ columns, rows }: SpreadsheetProps) {
 
   const renderCell = ({
     row, column, rowIndex, colIndex,
-  }) => {
+  }: {row: Row, column: Column, rowIndex: number, colIndex: number}): ReactElement => {
     const editableMode = isEditing && activeCell?.row === rowIndex && activeCell?.col === colIndex;
 
-    if (column.render) {
+    if (column.type === 'custom') {
       const Component = column.render;
 
       return <Component
         row={row}
         column={column}
         value={row[column.key]}
-        onChange={(newValue) => handleInputChange(newValue, rowIndex, column.key)}
+        onChange={(newValue: unknown) => handleInputChange(newValue, rowIndex, column.key)}
         onKeyDown={handleInputKeyDown}
         onBlur={() => {
           setIsEditing(false);
@@ -109,13 +111,15 @@ function Spreadsheet({ columns, rows }: SpreadsheetProps) {
     }
 
     if (!editableMode) {
-      return row[column.key];
+      return <div>{row[column.key] as ReactNode}</div>;
     }
 
-    const Component = componentPerType[column.type] ?? column.render ?? null;
+    const Component = componentPerType[column.type];
+    if (!Component) {
+      throw new Error('Invalid column type');
+    }
 
-    if (Component) {
-      return <Component
+    return <Component
         row={row}
         column={column}
         value={row[column.key]}
@@ -127,9 +131,6 @@ function Spreadsheet({ columns, rows }: SpreadsheetProps) {
         }}
         editable={editableMode}
       />;
-    }
-
-    return <div>row[column.key]</div>;
   };
 
   return (

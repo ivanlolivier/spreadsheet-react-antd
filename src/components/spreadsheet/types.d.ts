@@ -1,4 +1,4 @@
-import { KeyboardEventHandler, ReactNode } from 'react';
+import { KeyboardEventHandler, ReactElement } from 'react';
 
 /// ///////////////////////////////////////////////////
 // Row types
@@ -26,7 +26,7 @@ type SelectColumn = BaseColumn & {
 
 type CustomColumn = BaseColumn & {
   type: 'custom';
-  render: (record: unknown) => ReactNode;
+  render: (record: unknown) => ReactElement;
 }
 
 export type Column = BasicColumn | SelectColumn | CustomColumn;
