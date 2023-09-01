@@ -1,30 +1,22 @@
-import { ChangeEventHandler, KeyboardEventHandler } from 'react';
+import { Select } from 'antd';
 
-import { Column } from '../spreadsheet';
+import type { CellRenderProps, SelectColumn } from '../types';
 
-type Props = {
-  column: Column;
-  value: string;
-  onChange: ChangeEventHandler;
-  onKeyDown: KeyboardEventHandler;
-  onBlur: () => void;
-}
+type Props = CellRenderProps<string> & {column: SelectColumn};
 
 export default function SelectCell({
   value, column, onChange, onBlur,
 }: Props) {
-  return (
-    <select
-      autoFocus
-      open
-      onChange={(event) => {
-        onChange(event.target.value);
-        onBlur();
-      }}
-    >
-      {column.options?.map((option: string) => (
-        <option value={option} selected={value === option}>{option}</option>
-      ))}
-    </select>
-  );
+  return <Select
+    value={value}
+    style={{ width: 120 }}
+    showSearch={true}
+    onChange={(v) => {
+      onChange(v);
+      onBlur();
+    }}
+    open
+    autoFocus
+    options={column.options}
+  />;
 }

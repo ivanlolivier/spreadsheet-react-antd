@@ -1,14 +1,10 @@
-import { KeyboardEventHandler } from 'react';
+import { Input } from 'antd';
 
-type Props = {
-  value: string;
-  onChange: (v: any) => void;
-  onKeyDown: KeyboardEventHandler;
-}
+import type { CellRenderProps } from '../types';
 
-export default function TextCell({ value, onChange, onKeyDown }: Props) {
+export default function TextCell({ value, onChange, onKeyDown }: CellRenderProps<string>) {
   return (
-      <input
+      <Input
         type="text"
         value={value}
         onChange={(event) => onChange(event.target.value)}

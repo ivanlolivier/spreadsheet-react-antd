@@ -1,24 +1,12 @@
 import {
-  useState, useRef, Element, KeyboardEvent,
+  useState, useRef, KeyboardEvent,
 } from 'react';
 
 import './styles.css';
-import { TextCell, NumberCell, SelectCell } from './cellRenders';
-import { Column, ColumnType } from './spreadsheet';
+import { componentPerType } from './config.ts';
+import type { SpreadsheetProps } from './types';
 
-type Props = {
-  columns: Column[];
-  rows: {[key:string]: any}[];
-};
-
-const componentPerType: Record<ColumnType, Element> = {
-  number: NumberCell,
-  text: TextCell,
-  select: SelectCell,
-  custom: null,
-};
-
-function Spreadsheet({ columns, rows }: Props) {
+function Spreadsheet({ columns, rows }: SpreadsheetProps) {
   const [data, setData] = useState(rows);
   const [activeCell, setActiveCell] = useState<{row: number, col: number}>({ row: 0, col: 0 });
   const [isEditing, setIsEditing] = useState(false);
@@ -30,7 +18,7 @@ function Spreadsheet({ columns, rows }: Props) {
     }
   };
 
-  const handleKeyDown = (event: any) => {
+  const handleKeyDown = (event: KeyboardEvent) => {
     if (isEditing) return;
 
     let { row, col } = activeCell;
@@ -40,30 +28,30 @@ function Spreadsheet({ columns, rows }: Props) {
       case 'Tab':
         event.preventDefault();
         if (event.shiftKey && col > 0) {
-          col--;
+          col -= 1;
         } else if (event.shiftKey && col === 0 && row > 0) {
-          row--;
+          row -= 1;
           col = columns.length - 1; // move to the last column of the previous row
         } else {
-          col++;
+          col += 1;
         }
         if (col === columns.length && row < data.length - 1) {
           col = 0;
-          row++;
+          row += 1;
         }
         break;
       case 'ArrowLeft':
-        col--;
+        col -= 1;
         if (col < 0 && row > 0) {
-          row--;
+          row -= 1;
           col = columns.length - 1; // move to the last column of the previous row
         }
         break;
       case 'ArrowDown':
-        row++;
+        row += 1;
         break;
       case 'ArrowUp':
-        row--;
+        row -= 1;
         break;
       case 'Enter':
         setIsEditing(true);
@@ -99,9 +87,26 @@ function Spreadsheet({ columns, rows }: Props) {
   };
 
   const renderCell = ({
-    row, column, activeCell, rowIndex, colIndex,
+    row, column, rowIndex, colIndex,
   }) => {
     const editableMode = isEditing && activeCell?.row === rowIndex && activeCell?.col === colIndex;
+
+    if (column.render) {
+      const Component = column.render;
+
+      return <Component
+        row={row}
+        column={column}
+        value={row[column.key]}
+        onChange={(newValue) => handleInputChange(newValue, rowIndex, column.key)}
+        onKeyDown={handleInputKeyDown}
+        onBlur={() => {
+          setIsEditing(false);
+          tableRef.current?.focus();
+        }}
+        editable={editableMode}
+      />;
+    }
 
     if (!editableMode) {
       return row[column.key];
@@ -120,8 +125,11 @@ function Spreadsheet({ columns, rows }: Props) {
           setIsEditing(false);
           tableRef.current?.focus();
         }}
+        editable={editableMode}
       />;
     }
+
+    return <div>row[column.key]</div>;
   };
 
   return (
@@ -133,9 +141,7 @@ function Spreadsheet({ columns, rows }: Props) {
     >
       <thead>
       <tr>
-        {columns.map((col, index) => (
-          <th key={index}>{col.name}</th>
-        ))}
+        {columns.map((col) => (<th key={col.key}>{col.name}</th>))}
       </tr>
       </thead>
       <tbody>
@@ -163,7 +169,7 @@ function Spreadsheet({ columns, rows }: Props) {
               }}
             >
               {renderCell({
-                row, column, activeCell, rowIndex, colIndex,
+                row, column, rowIndex, colIndex,
               })}
             </td>
           ))}

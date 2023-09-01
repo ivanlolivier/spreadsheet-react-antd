@@ -14,22 +14,36 @@ const columns: Column[] = [
     name: 'Type',
     key: 'type',
     type: 'custom',
-    render: ({ value, onChange, onBlur }) => <Select
+    render: ({
+      editable, value, onChange, onBlur,
+    }) => (editable ? <Select
+        key='editable'
         value={value}
         style={{ width: 120 }}
+        showSearch={true}
         onChange={(v) => {
           onChange(v);
           onBlur();
         }}
-        defaultOpen
+        open
         autoFocus
         options={[
           { value: 'jackvalue', label: 'Jack Label' },
           { value: 'lucy', label: 'Lucy' },
           { value: 'Yiminghe', label: 'yiminghe' },
-          { value: 'disabled', label: 'Disabled', disabled: true },
         ]}
-      />,
+      /> : <Select
+      key='non-editable'
+      value='Yiminghe'
+      style={{ width: 120 }}
+      open={false}
+      options={[
+        { value: 'jackvalue', label: 'Jack Label' },
+        { value: 'lucy', label: 'Lucy' },
+        { value: 'Yiminghe', label: 'yiminghe' },
+        { value: 'disabled', label: 'Disabled', disabled: true },
+      ]}
+    />),
   },
 ];
 

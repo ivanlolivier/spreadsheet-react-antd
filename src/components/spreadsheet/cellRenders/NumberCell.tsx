@@ -1,13 +1,15 @@
-import { ChangeEventHandler, KeyboardEventHandler } from 'react';
+import { Input } from 'antd';
 
-type Props = {
-  value: string;
-  onChange: ChangeEventHandler;
-  onKeyDown: KeyboardEventHandler;
-}
+import type { CellRenderProps } from '../types';
 
-export default function NumberCell(props: Props) {
+export default function NumberCell({ value, onChange, onKeyDown }: CellRenderProps<number>) {
   return (
-    <input {...props} type="number" autoFocus/>
+    <Input
+      type="number"
+      value={value}
+      onChange={(event) => onChange(Number(event.target.value))}
+      onKeyDown={onKeyDown}
+      autoFocus
+    />
   );
 }
