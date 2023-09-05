@@ -2,60 +2,83 @@ import './App.css';
 import { Select } from 'antd';
 
 import Spreadsheet from './components/spreadsheet';
-import { Column } from './components/spreadsheet/spreadsheet';
+import { Column } from './components/spreadsheet/types';
 
 const columns: Column[] = [
-  { name: 'Name', key: 'name', type: 'text' },
-  { name: 'Age', key: 'age', type: 'number' },
   {
-    name: 'Country', key: 'country', type: 'select', options: ['Uruguay', 'Argentina', 'Peru'],
-  },
-  {
-    name: 'Type',
-    key: 'type',
+    name: 'Material',
+    key: 'materialId',
     type: 'custom',
     render: ({
       editable, value, onChange, onBlur,
     }) => (editable ? <Select
-        key='editable'
-        value={value}
-        style={{ width: 120 }}
-        showSearch={true}
-        onChange={(v) => {
-          onChange(v);
-          onBlur();
-        }}
-        open
-        autoFocus
-        options={[
-          { value: 'jackvalue', label: 'Jack Label' },
-          { value: 'lucy', label: 'Lucy' },
-          { value: 'Yiminghe', label: 'yiminghe' },
-        ]}
-      /> : <Select
+      key='editable'
+      value={value}
+      style={{ width: 120 }}
+      showSearch={true}
+      onChange={(v) => {
+        onChange(v);
+        onBlur();
+      }}
+      open
+      autoFocus
+      options={[
+        { value: '4321', label: 'Aluminium Cans' },
+        { value: '1234', label: 'Copper #1' },
+      ]}
+    /> : <Select
       key='non-editable'
-      value='Yiminghe'
+      value={value}
       style={{ width: 120 }}
       open={false}
       options={[
-        { value: 'jackvalue', label: 'Jack Label' },
-        { value: 'lucy', label: 'Lucy' },
-        { value: 'Yiminghe', label: 'yiminghe' },
-        { value: 'disabled', label: 'Disabled', disabled: true },
+        { value: '4321', label: 'Aluminium Cans' },
+        { value: '1234', label: 'Copper #1' },
       ]}
     />),
+  },
+  {
+    name: 'Gross (lb)', key: 'grossWeight', type: 'weight', validate: (v: number) => (v < 0 ? 'Gross should be greater than 0' : false),
+  },
+  {
+    name: 'Tare (lb)', key: 'tareWeight', type: 'weight', validate: (v, { grossWeight }) => (v > grossWeight ? 'Tare should be greater or equal than gross' : false),
+  },
+  {
+    name: 'Net (lb)', key: 'netWeight', type: 'read-only', calc: ({ grossWeight = 0, tareWeight = 0 }) => grossWeight - tareWeight,
+  },
+  { name: 'Unit Price', key: 'unitPrice', type: 'number' },
+  {
+    name: 'Pricing Unit',
+    key: 'pricingUnit',
+    type: 'select',
+    options: [
+      { value: 'pounds', label: 'pounds' },
+      { value: 'netTons', label: 'netTons' },
+      { value: 'grossTons', label: 'grossTons' },
+      { value: 'shortHundredweight', label: 'shortHundredweight' },
+    ],
+  },
+  {
+    name: 'Total (USD)', key: 'totalPrice', type: 'read-only', formatter: (v) => `$${v}`,
   },
 ];
 
 const rows = [
   {
-    name: 'John Doe', age: 23, type: 'lucy', country: 'Uruguay',
+    materialId: '1234', // 'Aluminium Cans',
+    grossWeight: 11,
+    tareWeight: 1,
+    unitPrice: 0.98,
+    totalPrice: 9.8,
+    pricingUnit: 'pounds',
   },
   {
-    name: 'John Smith', age: 25, type: 'lucy', country: 'Uruguay',
-  },
-  {
-    name: 'Ana Doe', age: 40, type: 'Yiminghe', country: 'Uruguay',
+    materialId: '4321', // 'Cooper #1',
+    grossWeight: 11,
+    tareWeight: 1,
+    unitPrice: 0.98,
+    totalPrice: 9.8,
+    pricingUnit: 'pounds',
   },
 ];
 

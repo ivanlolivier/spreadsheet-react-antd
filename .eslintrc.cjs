@@ -152,18 +152,11 @@ module.exports = {
         enforceForRenamedProperties: false,
       },
     ],
-
-    // Allow nested ternary
     'no-nested-ternary': 'off',
-
     'no-shadow': 'off',
     '@typescript-eslint/no-shadow': ['error'],
-    '@typescript-eslint/no-non-null-assertion': 'error',
-
     'react/no-unescaped-entities': 'off',
-
     'no-restricted-syntax': ['error', 'ForInStatement', 'LabeledStatement', 'WithStatement'],
-
     eqeqeq: ['error', 'always', { null: 'ignore' }],
   },
   settings: {

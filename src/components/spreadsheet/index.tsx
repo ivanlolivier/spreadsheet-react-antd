@@ -1,16 +1,17 @@
 import {
-  useState, useRef, KeyboardEvent, ReactElement, ReactNode,
+  useState, useRef, KeyboardEvent, ReactElement,
 } from 'react';
 
 import './styles.css';
 import { componentPerType } from './config.ts';
 import type {
+  Cell,
   Column, Row, SpreadsheetProps,
 } from './types';
 
 function Spreadsheet({ columns, rows }: SpreadsheetProps) {
   const [data, setData] = useState(rows);
-  const [activeCell, setActiveCell] = useState<{row: number, col: number}>({ row: 0, col: 0 });
+  const [activeCell, setActiveCell] = useState<Cell | null>(null);
   const [isEditing, setIsEditing] = useState(false);
   const tableRef = useRef<HTMLTableElement>(null);
 
@@ -22,13 +23,13 @@ function Spreadsheet({ columns, rows }: SpreadsheetProps) {
 
   const handleKeyDown = (event: KeyboardEvent) => {
     if (isEditing) return;
+    event.preventDefault();
 
-    let { row, col } = activeCell;
+    let { row, col } = activeCell!;
 
     switch (event.key) {
       case 'ArrowRight':
       case 'Tab':
-        event.preventDefault();
         if (event.shiftKey && col > 0) {
           col -= 1;
         } else if (event.shiftKey && col === 0 && row > 0) {
@@ -72,9 +73,12 @@ function Spreadsheet({ columns, rows }: SpreadsheetProps) {
   };
 
   const handleInputChange = (newValue: unknown, rowIndex: number, colKey: string) => {
-    const newData = [...data];
-    newData[rowIndex][colKey] = newValue;
-    setData(newData);
+    setData((d) => {
+      const newData = [...d].map((e) => ({ ...e }));
+      newData[rowIndex][colKey] = newValue;
+
+      return newData;
+    });
   };
 
   const handleInputKeyDown = (event: KeyboardEvent) => {
@@ -90,50 +94,40 @@ function Spreadsheet({ columns, rows }: SpreadsheetProps) {
 
   const renderCell = ({
     row, column, rowIndex, colIndex,
-  }: {row: Row, column: Column, rowIndex: number, colIndex: number}): ReactElement => {
+  }: { row: Row, column: Column, rowIndex: number, colIndex: number }): ReactElement => {
     const editableMode = isEditing && activeCell?.row === rowIndex && activeCell?.col === colIndex;
 
-    if (column.type === 'custom') {
-      const Component = column.render;
-
-      return <Component
-        row={row}
-        column={column}
-        value={row[column.key]}
-        onChange={(newValue: unknown) => handleInputChange(newValue, rowIndex, column.key)}
-        onKeyDown={handleInputKeyDown}
-        onBlur={() => {
-          setIsEditing(false);
-          tableRef.current?.focus();
-        }}
-        editable={editableMode}
-      />;
-    }
-
-    if (!editableMode) {
-      return <div>{row[column.key] as ReactNode}</div>;
-    }
-
-    const Component = componentPerType[column.type];
+    const Component = column.type === 'custom' ? column.render : componentPerType[column.type];
     if (!Component) {
       throw new Error('Invalid column type');
     }
 
-    return <Component
-        row={row}
-        column={column}
-        value={row[column.key]}
-        onChange={(newValue) => handleInputChange(newValue, rowIndex, column.key)}
-        onKeyDown={handleInputKeyDown}
-        onBlur={() => {
-          setIsEditing(false);
-          tableRef.current?.focus();
-        }}
-        editable={editableMode}
-      />;
+    const value = row[column.key];
+    const error = column.validate?.(value, row) ?? false;
+
+    if (error) {
+      console.log(column.key, value, error);
+    }
+
+    return <div>
+      <Component
+      record={row}
+      column={column}
+      value={value}
+      onChange={(newValue) => handleInputChange(newValue, rowIndex, column.key)}
+      onKeyDown={handleInputKeyDown}
+      onBlur={() => {
+        setIsEditing(false);
+        tableRef.current?.focus();
+      }}
+      editable={editableMode}
+      error={error}
+    />
+    </div>;
   };
 
   return (
+    <>
     <table
       ref={tableRef}
       onFocus={handleTableFocus}
@@ -178,6 +172,8 @@ function Spreadsheet({ columns, rows }: SpreadsheetProps) {
       ))}
       </tbody>
     </table>
+      <pre style={{ color: 'white', textAlign: 'left' }}>{JSON.stringify({ data, activeCell, isEditing }, null, 2)}</pre>
+    </>
   );
 }
 

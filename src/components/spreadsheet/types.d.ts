@@ -1,4 +1,6 @@
-import { KeyboardEventHandler, ReactElement } from 'react';
+import { KeyboardEventHandler, ReactElement, ReactNode } from 'react';
+
+export type Cell = {row: number, col: number};
 
 /// ///////////////////////////////////////////////////
 // Row types
@@ -8,15 +10,19 @@ export type Row = {[key:string]: unknown};
 /// ///////////////////////////////////////////////////
 // Column types
 
-export type ColumnType = 'text' | 'number' | 'select' | 'custom';
+export type ColumnType = 'text' | 'number' | 'select' | 'custom' | 'read-only' | 'weight';
 
 type BaseColumn = {
   key: string;
   name: string;
+  type: ColumnType;
+  validate?: (value: unknown, record: Row) => false | string;
 }
 
 type BasicColumn = BaseColumn & {
-  type: 'text' | 'number';
+  type: 'text' | 'number' | 'read-only' | 'weight';
+  formatter?: (v: unknown) => ReactNode;
+  calc?: (record: Row) => unknown;
 }
 
 type SelectColumn = BaseColumn & {
@@ -26,7 +32,7 @@ type SelectColumn = BaseColumn & {
 
 type CustomColumn = BaseColumn & {
   type: 'custom';
-  render: (record: unknown) => ReactElement;
+  render: (options: CellRenderProps) => ReactElement;
 }
 
 export type Column = BasicColumn | SelectColumn | CustomColumn;
@@ -42,7 +48,10 @@ export type SpreadsheetProps = {
 export type CellRenderProps<T> = {
   value: T;
   column: Column;
+  record: Row;
   onChange: (newValue: T) => void;// ChangeEventHandler<T>;
   onKeyDown: KeyboardEventHandler;
   onBlur: () => void;
+  editable: boolean;
+  error: boolean | string;
 }

@@ -5,9 +5,10 @@ import type { CellRenderProps, SelectColumn } from '../types';
 type Props = CellRenderProps<string> & {column: SelectColumn};
 
 export default function SelectCell({
-  value, column, onChange, onBlur,
+  value, column, onChange, onBlur, editable,
 }: Props) {
-  return <Select
+  return editable ? <Select
+    key='non-editable'
     value={value}
     style={{ width: 120 }}
     showSearch={true}
@@ -17,6 +18,14 @@ export default function SelectCell({
     }}
     open
     autoFocus
+    options={column.options}
+  /> : <Select
+    key='editable'
+    value={value}
+    style={{ width: 120 }}
+    onBlur={onBlur}
+    open={false}
+    autoFocus={false}
     options={column.options}
   />;
 }
