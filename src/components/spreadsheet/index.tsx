@@ -105,11 +105,7 @@ function Spreadsheet({ columns, rows }: SpreadsheetProps) {
     const value = row[column.key];
     const error = column.validate?.(value, row) ?? false;
 
-    if (error) {
-      console.log(column.key, value, error);
-    }
-
-    return <div>
+    return (
       <Component
       record={row}
       column={column}
@@ -122,8 +118,7 @@ function Spreadsheet({ columns, rows }: SpreadsheetProps) {
       }}
       editable={editableMode}
       error={error}
-    />
-    </div>;
+    />);
   };
 
   return (
@@ -157,7 +152,10 @@ function Spreadsheet({ columns, rows }: SpreadsheetProps) {
                     ? '2px solid blue'
                     : 'none',
               }}
-              onClick={() => setActiveCell({ row: rowIndex, col: colIndex })}
+              onClick={() => {
+                setActiveCell({ row: rowIndex, col: colIndex });
+                setIsEditing(true);
+              }}
               onDoubleClick={() => {
                 setActiveCell({ row: rowIndex, col: colIndex });
                 setIsEditing(true);
@@ -172,7 +170,7 @@ function Spreadsheet({ columns, rows }: SpreadsheetProps) {
       ))}
       </tbody>
     </table>
-      <pre style={{ color: 'white', textAlign: 'left' }}>{JSON.stringify({ data, activeCell, isEditing }, null, 2)}</pre>
+      <pre style={{ color: 'white', textAlign: 'left' }}>{JSON.stringify({ isEditing, activeCell, data }, null, 2)}</pre>
     </>
   );
 }

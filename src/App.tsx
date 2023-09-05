@@ -38,6 +38,12 @@ const columns: Column[] = [
     />),
   },
   {
+    name: 'Prod. Desc.',
+    key: 'productDescriptionId',
+    type: 'custom',
+    render: () => <div>Prod desc</div>,
+  },
+  {
     name: 'Gross (lb)', key: 'grossWeight', type: 'weight', validate: (v: number) => (v < 0 ? 'Gross should be greater than 0' : false),
   },
   {
@@ -61,24 +67,29 @@ const columns: Column[] = [
   {
     name: 'Total (USD)', key: 'totalPrice', type: 'read-only', formatter: (v) => `$${v}`,
   },
+  { name: 'Notes', key: 'notes', type: 'text' },
 ];
 
 const rows = [
   {
     materialId: '1234', // 'Aluminium Cans',
+    productDescriptionId: '1',
     grossWeight: 11,
     tareWeight: 1,
     unitPrice: 0.98,
     totalPrice: 9.8,
     pricingUnit: 'pounds',
+    notes: '',
   },
   {
     materialId: '4321', // 'Cooper #1',
+    productDescriptionId: '2',
     grossWeight: 11,
     tareWeight: 1,
     unitPrice: 0.98,
     totalPrice: 9.8,
     pricingUnit: 'pounds',
+    notes: '',
   },
 ];
 

@@ -10,7 +10,6 @@ export default function NumberCell({
   const ref = useRef<InputRef>(null);
   useEffect(() => {
     if (editable) {
-      console.log('focusing');
       ref.current?.focus();
     }
   }, [editable]);
